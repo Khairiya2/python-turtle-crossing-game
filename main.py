@@ -1,25 +1,43 @@
-from turtle import Turtle
+import time
+from turtle import Screen
+from player import Player
+from car_manager import CarManager
+from scoreboard import Scoreboard
 
-FONT = ("Courier", 18, "normal")
+# Screen setup
+screen = Screen()
+screen.setup(width=600, height=600)
+screen.title("Turtle Crossing Game")
+screen.tracer(0)
 
+# Create game objects
+player = Player()
+car_manager = CarManager()
+scoreboard = Scoreboard()
 
-class Scoreboard(Turtle):
-    def __init__(self):
-        super().__init__()
-        self.level = 1
-        self.penup()
-        self.hideturtle()
-        self.goto(-280, 260)
-        self.update_scoreboard()
+# Keyboard control
+screen.listen()
+screen.onkey(player.go_up, "Up")
 
-    def update_scoreboard(self):
-        self.clear()
-        self.write(f"Level: {self.level}", align="left", font=FONT)
+# Game loop
+game_is_on = True
+while game_is_on:
+    time.sleep(0.1)
+    screen.update()
 
-    def increase_level(self):
-        self.level += 1
-        self.update_scoreboard()
+    car_manager.create_car()
+    car_manager.move_cars()
 
-    def game_over(self):
-        self.goto(0, 0)
-        self.write("GAME OVER", align="center", font=FONT)
+    # Detect collision with cars
+    for car in car_manager.all_cars:
+        if car.distance(player) < 20:
+            game_is_on = False
+            scoreboard.game_over()
+
+    # Detect successful crossing
+    if player.is_at_finish_line():
+        player.go_to_start()
+        car_manager.level_up()
+        scoreboard.increase_level()
+
+screen.exitonclick()
